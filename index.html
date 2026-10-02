@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BUZZER V2 — Play • Buzz • Win</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#020817;--bg2:#08183a;--panel:rgba(7,19,46,.84);--panel2:rgba(12,32,72,.7);--line:rgba(56,140,255,.38);--c1:#2fb4ff;--c2:#7b5cff;--glow:rgba(47,180,255,.45);--gold:#ffc83d;--green:#22e58b;--red:#ff4d5e;--text:#e2eeff;--muted:#86a2cf;--fd:'Orbitron','Segoe UI',sans-serif;--fb:'Rajdhani','Segoe UI',system-ui,sans-serif}
+body[data-theme=purple]{--c1:#b36bff;--c2:#ff4fd8;--line:rgba(170,110,255,.4);--glow:rgba(179,107,255,.45);--bg2:#1a0d3d;--panel:rgba(20,10,48,.84);--panel2:rgba(34,16,78,.7)}
+body[data-theme=matrix]{--c1:#27f08a;--c2:#18c4a6;--line:rgba(39,240,138,.35);--glow:rgba(39,240,138,.4);--bg2:#05261a;--panel:rgba(4,26,18,.84);--panel2:rgba(6,42,30,.7)}
+body[data-theme=solar]{--c1:#ffb02e;--c2:#ff6a3d;--line:rgba(255,176,46,.38);--glow:rgba(255,176,46,.4);--bg2:#2a1805;--panel:rgba(30,18,6,.84);--panel2:rgba(50,28,8,.7)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{background:radial-gradient(1200px 700px at 50% -10%,var(--bg2),var(--bg) 70%) fixed;color:var(--text);font-family:var(--fb);font-size:16px;overflow-x:hidden;line-height:1.35}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px)}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+#app{position:relative;z-index:1;min-height:100vh}
+button{font-family:inherit}
+.grow{flex:1}.muted{color:var(--muted)}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ic{flex:none;vertical-align:middle}
+.hud{font-family:var(--fd);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.hud.sm{font-size:13px;margin-bottom:12px;color:#fff}
+.page{max-width:1120px;margin:0 auto;padding:22px 18px 40px}
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--fd);font-weight:900;letter-spacing:.14em;font-size:18px;color:#fff;text-shadow:0 0 14px var(--glow)}
+.logo{width:38px;height:38px;filter:drop-shadow(0 0 8px var(--glow))}
+.panel{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:inset 0 0 28px rgba(47,180,255,.06),0 0 22px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
+.panel::before,.panel::after{content:"";position:absolute;width:14px;height:14px;border:2px solid var(--c1);pointer-events:none;opacity:.85;filter:drop-shadow(0 0 4px var(--glow))}
+.panel::before{top:-1px;left:-1px;border-right:0;border-bottom:0;border-top-left-radius:12px}
+.panel::after{bottom:-1px;right:-1px;border-left:0;border-top:0;border-bottom-right-radius:12px}
+.pad{padding:18px 20px}
+.btn{font-family:var(--fd);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);background:rgba(20,50,110,.35);border:1px solid var(--c1);border-radius:999px;padding:11px 22px;cursor:pointer;position:relative;overflow:hidden;transition:.2s;box-shadow:0 0 14px rgba(47,180,255,.18)}
+.btn:hover{box-shadow:0 0 22px var(--glow);transform:translateY(-1px)}
+.btn::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transition:left .6s;pointer-events:none}
+.btn:hover::after{left:140%}
+.btn.primary{background:linear-gradient(90deg,var(--c1),var(--c2));border-color:transparent;color:#fff;font-weight:700}
+.btn.danger{border-color:var(--red);background:linear-gradient(90deg,#b81f35,#ff4d5e);color:#fff}
+.btn.ok{border-color:var(--green);background:linear-gradient(90deg,#0fa866,#22e58b);color:#04200f;font-weight:700}
+.btn.warn{border-color:var(--gold);background:linear-gradient(90deg,#c98a00,#ffc83d);color:#2a1c00;font-weight:700}
+.btn.sm{padding:6px 12px;font-size:10px}
+.btn.lg{padding:14px 44px;font-size:14px}
+.btn.block{display:block;width:100%}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.link{background:none;border:0;color:var(--c1);cursor:pointer;font-size:14px;text-decoration:underline;text-underline-offset:3px}
+.link:hover{color:#fff}
+label.f{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px;letter-spacing:.04em}
+.inp,select.inp{width:100%;background:rgba(4,14,38,.85);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px 12px;font:500 16px var(--fb);outline:none;transition:.2s}
+.inp:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(47,180,255,.18),0 0 14px var(--glow)}
+.inp[readonly]{opacity:.75}
+select.inp option{background:#08183a}
+.ig{display:flex;gap:8px}.ig .inp{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;font-size:13px;background:rgba(10,30,70,.5)}
+.st-ongoing,.st-active,.on-t{color:var(--green);border-color:rgba(34,229,139,.5)}
+.st-waiting{color:var(--gold);border-color:rgba(255,200,61,.5)}
+.st-ended,.st-eliminated,.off-t{color:var(--red);border-color:rgba(255,77,94,.5)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);margin-right:6px}
+.dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+.badge{background:var(--red);color:#fff;font-style:normal;font-size:11px;border-radius:99px;padding:1px 7px;margin-left:auto;font-weight:700}
+.av{width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;background:linear-gradient(135deg,var(--c1),var(--c2));font:700 11px var(--fd);color:#fff;flex:none}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty h3{color:#fff;font-family:var(--fd);margin-bottom:8px;font-size:16px}
+.empty.small{padding:24px 10px}
+/* tables */
+.tscroll{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{font-family:var(--fd);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid rgba(56,140,255,.14);white-space:nowrap}
+.tbl tr:hover td{background:rgba(47,180,255,.06)}
+.tag{padding:3px 10px;border-radius:5px;font-size:12px;font-weight:700;border:1px solid}
+.tag.pend{color:var(--gold);border-color:var(--gold);background:rgba(255,200,61,.1)}
+.tag.acc{color:var(--green);border-color:var(--green);background:rgba(34,229,139,.1)}
+.tag.rej{color:var(--red);border-color:var(--red);background:rgba(255,77,94,.1)}
+/* welcome */
+.home{min-height:100vh;display:grid;place-items:center;padding:30px 16px;text-align:center}
+.hero{width:100%;max-width:620px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.hero-logo{position:relative;width:230px;height:230px;display:grid;place-items:center;margin-bottom:6px}
+.hero-logo .rsvg{position:absolute;inset:0;width:100%;height:100%}
+.hero-logo .logo{width:120px;height:120px;filter:drop-shadow(0 0 22px var(--glow));animation:float 4s ease-in-out infinite}
+.hero h1{font-family:var(--fd);font-weight:900;font-size:clamp(38px,9vw,66px);letter-spacing:.1em;background:linear-gradient(180deg,#fff,var(--c1) 70%,var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px var(--glow));animation:flick 6s infinite}
+.hero .tagline{font-family:var(--fd);letter-spacing:.5em;color:var(--c1);font-size:14px;margin-top:2px}
+.hero .sub{color:var(--c1);margin:8px 0;font-size:16px}
+.cta{justify-content:center;margin:14px 0 6px}
+.foot{margin-top:22px;color:var(--muted);letter-spacing:.3em;font-size:14px}
+.eq{display:flex;align-items:center;justify-content:center;gap:3px;height:46px;width:100%}
+.eq i{display:block;width:3px;height:100%;background:linear-gradient(var(--c1),var(--c2));border-radius:2px;transform-origin:center;animation:eq 1.1s ease-in-out infinite;animation-delay:var(--d)}
+/* rings */
+.ring-wrap{position:relative;width:min(380px,82vw);aspect-ratio:1;margin:0 auto}
+.rsvg{width:100%;height:100%;display:block;overflow:visible}
+.rsvg .r-bg{fill:none;stroke:rgba(80,140,255,.16);stroke-width:10}
+.rsvg .r-prog{fill:none;stroke:var(--c1);stroke-width:10;stroke-linecap:round;filter:drop-shadow(0 0 7px var(--glow))}
+.spin{transform-box:fill-box;transform-origin:center;animation:spin 18s linear infinite}
+.s2{animation-duration:26s;animation-direction:reverse}.s3{animation-duration:12s}
+.rsvg.on .s1{animation-duration:5s}.rsvg.on .s3{animation-duration:4s}
+.rsvg.on{filter:drop-shadow(0 0 16px var(--glow))}
+.rc{position:absolute;inset:19%;border-radius:50%;display:grid;place-items:center;text-align:center}
+.glow-bg{position:absolute;inset:14%;border-radius:50%;background:radial-gradient(circle,rgba(47,180,255,.22),transparent 70%);animation:pulse 3s ease-in-out infinite}
+/* login */
+.login-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:860px;margin:30px auto 0}
+.card{padding:26px 26px 22px}
+.card .ico{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 6px;border-radius:50%;border:1px solid var(--c1);box-shadow:0 0 18px var(--glow);color:var(--c1)}
+.card h2{font-family:var(--fd);text-align:center;font-size:20px;letter-spacing:.06em}
+.card .cap{text-align:center;color:var(--muted);font-size:14px;margin-bottom:6px}
+.card .btn{margin-top:18px}
+.center-note{text-align:center;margin-top:16px;color:var(--muted);font-size:14px}
+/* admin shell */
+.shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+.side{background:linear-gradient(180deg,rgba(4,12,32,.92),rgba(4,12,32,.75));border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.side .sb{margin:0 6px 16px;font-size:15px}
+.side nav{display:flex;flex-direction:column;gap:4px}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:4px;padding-top:12px}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#b5cdf5;cursor:pointer;font-size:15px;font-weight:600;border:1px solid transparent;transition:.18s;user-select:none}
+.nav:hover{background:rgba(47,180,255,.1);color:#fff}
+.nav.on{background:linear-gradient(90deg,var(--c1),var(--c2));color:#fff;box-shadow:0 0 16px var(--glow)}
+.amain{min-width:0}
+.ahead{display:flex;align-items:center;gap:12px;margin:16px 18px 0;padding:10px 16px}
+.who{display:flex;align-items:center;gap:10px}.who small{display:block;color:var(--muted);font-size:11px;line-height:1}
+.abody{padding:16px 18px 40px;display:flex;flex-direction:column;gap:16px}
+.dash-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.dash-head h2{font-size:22px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.stat .s-ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--c1);color:var(--c1);box-shadow:0 0 14px var(--glow)}
+.stat small{display:block;color:var(--muted);font-size:13px}.stat b{font-family:var(--fd);font-size:26px}
+.stat.g .s-ic{color:var(--green);border-color:var(--green)}.stat.r .s-ic{color:var(--red);border-color:var(--red)}.stat.y .s-ic{color:var(--gold);border-color:var(--gold)}
+.two{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
+.act{display:flex;align-items:center;gap:12px;padding:9px 10px;border-bottom:1px solid rgba(56,140,255,.14);font-size:15px}
+.act .tm{color:var(--muted);font-size:13px;min-width:44px}
+.qa{display:flex;flex-direction:column;gap:9px}
+.qa .btn{display:flex;align-items:center;gap:10px;border-radius:8px;text-transform:none;letter-spacing:.04em;font-family:var(--fb);font-size:15px;font-weight:600;padding:10px 14px}
+/* create */
+.create-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.cred{border:1px solid var(--c1);border-radius:10px;padding:14px;text-align:center;margin-top:12px;background:rgba(5,20,50,.6);box-shadow:0 0 16px rgba(47,180,255,.15)}
+.cred small{display:block;color:var(--muted)}.cred b{font-family:var(--fd);font-size:24px;letter-spacing:.08em;color:#fff;text-shadow:0 0 12px var(--glow)}
+.bigcrown{width:70px;margin:0 auto 4px;filter:drop-shadow(0 0 14px var(--gold))}
+/* switches */
+.sw{position:relative;width:46px;height:24px;flex:none}
+.sw input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:1;margin:0}
+.sw i{position:absolute;inset:0;background:#10234d;border:1px solid var(--line);border-radius:99px;transition:.2s}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#8fb0e6;transition:.2s}
+.sw input:checked+i{background:var(--c1)}.sw input:checked+i::after{left:25px;background:#fff}
+.setrow{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid rgba(56,140,255,.14)}
+input[type=range]{accent-color:var(--c1);width:100%}
+/* player shell */
+.pshell{max-width:1180px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:16px}
+.phead{display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+.pnav{display:flex;gap:4px;flex-wrap:wrap}
+.pnav .nav{padding:8px 14px;font-size:14px}
+.pm{display:grid;grid-template-columns:1fr 280px;gap:16px}
+.pm-grid{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:center;margin:8px 0}
+.mini{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel2);margin-bottom:12px}
+.mini small{display:block;color:var(--muted);font-size:13px}.mini b{font-family:var(--fd);font-size:20px}
+.mini.t b{font-size:28px;color:var(--c1);text-shadow:0 0 12px var(--glow)}
+.tname{font-family:var(--fd);font-size:20px;font-weight:900;letter-spacing:.06em;color:#fff}
+.score{font-family:var(--fd);font-size:42px;font-weight:900;color:#fff;text-shadow:0 0 18px var(--glow);line-height:1.1}
+.press{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px auto 0;max-width:340px;padding:15px 20px;font-family:var(--fd);font-weight:700;letter-spacing:.1em;color:#fff;border:2px solid var(--c2);background:linear-gradient(90deg,rgba(123,92,255,.35),rgba(47,180,255,.25));clip-path:polygon(7% 0,93% 0,100% 50%,93% 100%,7% 100%,0 50%);cursor:pointer;font-size:16px;transition:.2s;width:100%}
+.press:hover{background:linear-gradient(90deg,var(--c2),var(--c1));filter:drop-shadow(0 0 14px var(--glow))}
+.press.live{animation:pulse 1s ease-in-out infinite;background:linear-gradient(90deg,var(--c2),var(--c1))}
+.mem{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid rgba(56,140,255,.14)}
+.mem small{margin-left:auto;font-size:12px}
+.bl{display:grid;grid-template-columns:1fr 290px;gap:16px}
+.stage{padding:18px;text-align:center}
+.stage .stop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap}
+.big-buzz{position:absolute;inset:17%;border-radius:50%;border:2px solid var(--line);background:radial-gradient(circle at 50% 35%,rgba(30,70,150,.55),rgba(5,14,38,.95) 70%);color:#fff;cursor:default;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-family:var(--fd);letter-spacing:.08em;transition:.2s;text-align:center;padding:10px}
+.big-buzz b{font-size:clamp(15px,3.4vw,22px);color:#fff}.big-buzz span{font-size:12px;color:var(--c1)}
+.big-buzz.go{cursor:pointer;border-color:var(--c1);animation:pulse 1.1s ease-in-out infinite;box-shadow:0 0 40px var(--glow),inset 0 0 40px rgba(47,180,255,.25)}
+.big-buzz.go:active{transform:scale(.94)}
+.big-buzz.done{border-color:var(--gold);box-shadow:0 0 36px rgba(255,200,61,.5)}.big-buzz.done b{color:var(--gold)}
+.big-buzz.dead{border-color:rgba(255,77,94,.55)}.big-buzz.dead b{color:var(--red)}
+.orow{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:9px 10px;margin-bottom:7px;border:1px solid var(--line);border-radius:9px;background:var(--panel2)}
+.orow .rank{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--c1);font:700 12px var(--fd)}
+.orow.first{border-color:var(--gold);background:linear-gradient(90deg,rgba(255,200,61,.22),rgba(255,200,61,.05));box-shadow:0 0 18px rgba(255,200,61,.25)}
+.orow.first .rank{border-color:var(--gold);color:var(--gold)}
+.orow.mine{outline:1px dashed var(--c1)}
+.orow small{display:block;color:var(--muted);font-size:12px;text-align:right}
+.res{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.crown-card{text-align:center;padding:30px 16px;overflow:hidden;display:grid;place-items:center;min-height:300px}
+.crown-card .cc{position:relative;z-index:1}
+.crown-card svg{width:110px;filter:drop-shadow(0 0 18px var(--gold));animation:float 3s ease-in-out infinite}
+.crown-card .ct{font-family:var(--fd);font-size:22px;font-weight:900;color:var(--gold);margin-top:8px}
+.burst{position:absolute;width:420px;height:420px;left:50%;top:50%;margin:-210px 0 0 -210px;background:repeating-conic-gradient(rgba(255,200,61,.16) 0 6deg,transparent 6deg 16deg);border-radius:50%;-webkit-mask:radial-gradient(circle,#000 20%,transparent 68%);mask:radial-gradient(circle,#000 20%,transparent 68%);animation:spin 14s linear infinite}
+/* leaderboard */
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:14px;align-items:end;margin:10px 0 18px;max-width:760px;margin-inline:auto}
+.pod{text-align:center;padding:14px 8px 0;border:1px solid var(--line);border-radius:12px 12px 0 0;background:var(--panel2)}
+.pod .medal{width:54px;height:54px;border-radius:50%;margin:-40px auto 8px;display:grid;place-items:center;font:900 24px var(--fd);background:#0a1c44;border:3px solid #b9c7e6;color:#dfe9ff;box-shadow:0 0 18px rgba(185,199,230,.5)}
+.pod.p1{border-color:var(--gold);box-shadow:0 0 28px rgba(255,200,61,.35)}.pod.p1 .medal{border-color:var(--gold);color:var(--gold);box-shadow:0 0 22px rgba(255,200,61,.7);width:64px;height:64px;font-size:30px;margin-top:-46px}
+.pod.p3 .medal{border-color:#d9874b;color:#e9a46d;box-shadow:0 0 18px rgba(217,135,75,.5)}
+.pod .pn{font-family:var(--fd);font-weight:700;font-size:15px}.pod .pp{color:var(--muted);margin-bottom:10px}
+.pod.p1 .pp{color:var(--gold)}.pod .bar{height:34px}.pod.p1 .bar{height:64px}.pod.p2 .bar{height:44px}
+.pod.empty{opacity:.4}
+.up{color:var(--green)}.dn{color:var(--red)}
+/* modal & toast */
+#modal{position:fixed;inset:0;z-index:50;pointer-events:none}
+.mback{position:fixed;inset:0;background:rgba(1,6,20,.72);display:grid;place-items:center;padding:16px;pointer-events:auto;animation:fade .2s;backdrop-filter:blur(3px)}
+.mbox{width:100%;max-width:440px;padding:22px;animation:pop .22s}
+.mbox h3{font-family:var(--fd);font-size:16px;letter-spacing:.06em;margin-bottom:10px}
+.mbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.elim-pv{margin-top:14px;text-align:center;border:1px solid rgba(255,77,94,.5);background:rgba(255,77,94,.08);border-radius:10px;padding:14px;color:var(--red);font-family:var(--fd);font-size:13px}
+#toasts{position:fixed;top:14px;right:14px;z-index:60;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--panel);border:1px solid var(--c1);border-left-width:4px;border-radius:8px;padding:10px 16px;box-shadow:0 0 20px var(--glow);animation:slide .25s;max-width:320px;font-weight:600}
+.toast.err{border-color:var(--red)}.toast.ok{border-color:var(--green)}.toast.out{opacity:0;transform:translateX(30px);transition:.4s}
+.wait-spin{width:70px;height:70px;border-radius:50%;border:4px solid rgba(47,180,255,.2);border-top-color:var(--c1);margin:0 auto 14px;animation:spin 1s linear infinite}
+/* anim */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes eq{0%,100%{transform:scaleY(.14)}50%{transform:scaleY(var(--h))}}
+@keyframes pulse{0%,100%{box-shadow:0 0 18px var(--glow);opacity:1}50%{box-shadow:0 0 44px var(--glow);opacity:.88}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes flick{0%,92%,100%{opacity:1}93%{opacity:.8}95%{opacity:1}97%{opacity:.85}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:scale(.92) translateY(8px)}to{opacity:1;transform:none}}
+@keyframes slide{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@media (max-width:980px){
+ .shell{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px}
+ .side .sb{width:100%;margin:0 0 6px}.side nav{flex-direction:row;flex-wrap:wrap}.side-foot{margin:0;flex-direction:row;padding:0}
+ .stats{grid-template-columns:1fr 1fr}.two,.create-grid,.pm,.bl,.res{grid-template-columns:1fr}
+ .login-grid{grid-template-columns:1fr}.pm-grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){.grid2,.grid3{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.podium{gap:6px}.nav span{font-size:13px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body data-theme="neon">
+<canvas id="bg"></canvas>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--c1)"/><stop offset="1" style="stop-color:var(--c2)"/></linearGradient>
+<symbol id="logo" viewBox="0 0 100 100"><polygon points="50,4 91,27 91,73 50,96 9,73 9,27" fill="rgba(5,18,50,.75)" stroke="url(#gA)" stroke-width="4"/><text x="50" y="67" text-anchor="middle" font-family="Orbitron,Segoe UI,sans-serif" font-weight="900" font-size="46" fill="url(#gA)">B</text><polygon points="58,14 44,32 52,32 46,48 62,28 54,28" fill="#fff" opacity=".9" transform="translate(14 -2) scale(.55)"/></symbol>
+</defs></svg>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="toasts"></div>
+
+<script>
+(function(){
+'use strict';
+/* ============ helpers ============ */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const pad=n=>String(n).padStart(2,'0');
+const fmtMS=ms=>{const s=Math.ceil(ms/1000);return pad(Math.floor(s/60))+':'+pad(s%60)};
+const clock=ts=>{const d=new Date(ts);return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())};
+const hm=ts=>{const d=new Date(ts);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const initials=n=>String(n||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const fv=(f,n)=>f.elements[n]?f.elements[n].value:'';
+
+/* ============ storage (localStorage with in-memory fallback) ============ */
+const KEY='buzzerv2_state_v1',PKEY='buzzerv2_presence_v1',SKEY='buzzerv2_session_v1';
+const mem={};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return mem[k]==null?null:mem[k]}},set(k,v){try{localStorage.setItem(k,v)}catch(e){mem[k]=v}}};
+const sstore={get(k){try{return sessionStorage.getItem(k)}catch(e){return mem['s_'+k]==null?null:mem['s_'+k]}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){mem['s_'+k]=v}}};
+let bc=null;try{bc=new BroadcastChannel('buzzerv2')}catch(e){}
+
+const defSettings=()=>({sound:true,notif:true,autoNext:false,theme:'neon',volume:70});
+const defState=()=>({users:[{id:'admin',pass:'admin123',name:'Main Admin'}],comp:null,settings:defSettings()});
+function loadS(){let v=null;try{v=JSON.parse(store.get(KEY))}catch(e){}
+ if(!v||!Array.isArray(v.users))v=defState();
+ v.settings=Object.assign(defSettings(),v.settings||{});
+ if(v.comp){const c=v.comp;c.teams=c.teams||[];c.requests=c.requests||[];c.scores=c.scores||[];c.history=c.history||[];c.buzzer=c.buzzer||{state:'idle',startedAt:0,endsAt:0,order:[]};c.buzzer.order=c.buzzer.order||[]}
+ return v}
+let S=loadS(),lastRaw=store.get(KEY);
+function saveS(){const raw=JSON.stringify(S);store.set(KEY,raw);lastRaw=raw;try{bc&&bc.postMessage('s')}catch(e){}}
+function mutate(fn,opt){opt=opt||{};S=loadS();const r=fn(S);saveS();if(!opt.quiet)render();return r}
+
+let sess={};try{sess=JSON.parse(sstore.get(SKEY))||{}}catch(e){sess={}}
+if(!sess.view)sess.view='home';
+const saveSess=()=>sstore.set(SKEY,JSON.stringify(sess));
+const go=v=>{sess.view=v;saveSess();render();window.scrollTo(0,0)};
+
+/* presence */
+const FRESH=12000;
+const getP=()=>{try{return JSON.parse(store.get(PKEY))||{}}catch(e){return{}}};
+function beat(on){if(sess.role!=='player'||!sess.team)return;const p=getP(),k=sess.team+'|'+sess.member,now=Date.now();
+ if(on===false)delete p[k];else p[k]=now;
+ Object.keys(p).forEach(x=>{if(now-p[x]>3600000)delete p[x]});store.set(PKEY,JSON.stringify(p))}
+function memberOnline(t,m,P){return t.sim?!t.simOff:(P[t.id+'|'+m]||0)>Date.now()-FRESH}
+function teamOnline(t,P){return t.status!=='eliminated'&&t.members.some(m=>memberOnline(t,m,P))}
+function lastSeen(t,P){if(t.sim)return t.lastSeen||t.joinedAt;let m=0;t.members.forEach(x=>{m=Math.max(m,P[t.id+'|'+x]||0)});return m||t.joinedAt}
+
+/* ============ domain helpers ============ */
+const tScore=(c,t)=>(t.base||0)+c.scores.filter(s=>s.team===t.id).reduce((a,s)=>a+s.marks,0);
+const ranked=c=>c.teams.map(t=>({t,score:tScore(c,t)})).sort((a,b)=>b.score-a.score||a.t.name.localeCompare(b.t.name));
+const rankOf=(c,id)=>ranked(c).findIndex(x=>x.t.id===id)+1;
+const myTeam=()=>S.comp&&S.comp.teams.find(t=>t.id===sess.team);
+const qInfo=c=>({qi:((c.q-1)%c.qPerRound)+1,round:c.round,total:c.totalRounds*c.qPerRound});
+function bzState(c){const b=c.buzzer;if(b.state==='active')return Date.now()>=b.endsAt?'ended':'active';return b.state}
+function log(c,type,text){c.history.unshift({id:uid(),ts:Date.now(),type,text});c.history=c.history.slice(0,300)}
+const statusLabel=c=>({waiting:'Waiting',ongoing:'Ongoing',ended:'Ended'}[c.status]||'Waiting');
+function genPass(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:6},()=>a[Math.floor(Math.random()*a.length)]).join('')}
+function genGroup(n){const w=(n||'').trim().split(/\s+/).filter(x=>/^[A-Za-z]/.test(x));const ini=(w.map(x=>x[0]).join('').toUpperCase().slice(0,3))||'BZ';const num=(n||'').match(/\d{4}/);
+ return ini+(num?num[0]:new Date().getFullYear())+'-'+pad(1+Math.floor(Math.random()*99)).padStart(3,'0')}
+
+/* ============ sound / toast / modal ============ */
+let ac=null;
+function beep(freq,dur,type){if(!S.settings.sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();
+ const o=ac.createOscillator(),g=ac.createGain(),v=(S.settings.volume/100)*.25,d=dur||.18;o.type=type||'sine';o.frequency.value=freq||880;
+ g.gain.setValueAtTime(Math.max(v,.0002),ac.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+function toast(msg,type){const w=$('#toasts'),d=document.createElement('div');d.className='toast '+(type||'info');d.textContent=msg;w.appendChild(d);setTimeout(()=>d.classList.add('out'),3200);setTimeout(()=>d.remove(),3800)}
+const evToast=(m)=>{if(S.settings.notif)toast(m)};
+function openModal(html){$('#modal').innerHTML='<div class="mback" data-a="mclose"><div class="mbox panel">'+html+'</div></div>'}
+function closeModal(){$('#modal').innerHTML=''}
+let confirmFn=null;
+function confirmBox(title,msg,okText,fn){confirmFn=fn;openModal(`<h3>${esc(title)}</h3><p class="muted">${esc(msg)}</p><div class="mbtns"><button class="btn" data-a="mx">Cancel</button><button class="btn danger" data-a="confirmOk">${esc(okText||'Confirm')}</button></div>`)}
+
+/* ============ icons ============ */
+const ICONS={
+grid:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+plus:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>',
+users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+userplus:'<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>',
+shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+chart:'<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
+activity:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+sliders:'<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+award:'<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+info:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+ban:'<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>',
+rotate:'<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+pointer:'<path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>',
+lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+skip:'<polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>',
+play:'<polygon points="5 3 19 12 5 21 5 3"/>',
+download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>',
+user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'
+};
+const ic=(n,s)=>`<svg class="ic" width="${s||18}" height="${s||18}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]||''}</svg>`;
+const logo=()=>'<svg class="logo" viewBox="0 0 100 100"><use href="#logo"/></svg>';
+const crownSVG='<svg viewBox="0 0 64 50"><path d="M4 40 L8 12 L22 26 L32 6 L42 26 L56 12 L60 40 Z" fill="#ffc83d"/><rect x="4" y="40" width="56" height="6" rx="2" fill="#e0a800"/><circle cx="8" cy="12" r="3" fill="#fff"/><circle cx="32" cy="6" r="3" fill="#fff"/><circle cx="56" cy="12" r="3" fill="#fff"/></svg>';
+function eqBars(n){let s='';for(let i=0;i<n;i++){s+=`<i style="--d:${(-(i*0.07)%1.1).toFixed(2)}s;--h:${(.3+Math.abs(Math.sin(i*1.3))*.7).toFixed(2)}"></i>`}return `<div class="eq">${s}</div>`}
+
+/* ring with countdown */
+function timerAttrs(c){const st=bzState(c),b=c.buzzer;
+ if(st==='active')return {s:b.startedAt,e:b.endsAt,txt:fmtMS(Math.max(0,b.endsAt-Date.now())),cd:b.endsAt};
+ if(st==='idle')return {s:0,e:0,txt:fmtMS(c.timeLimit*1000),cd:0};
+ return {s:0,e:1,txt:st==='ended'?'00:00':'--:--',cd:0}}
+function ringSVG(on,timer,c){
+ const C=2*Math.PI*150,ta=timer&&c?timerAttrs(c):null;
+ const prog=ta?`<circle class="r-bg" cx="200" cy="200" r="150"/><circle class="r-prog" cx="200" cy="200" r="150" transform="rotate(-90 200 200)" data-ring data-c="${C.toFixed(2)}" data-s="${ta.s}" data-e="${ta.e}" style="stroke-dasharray:${C.toFixed(2)};stroke-dashoffset:0"/>`:'';
+ return `<svg class="rsvg ${on?'on':''}" viewBox="0 0 400 400" aria-hidden="true">${prog}
+ <circle class="spin s1" cx="200" cy="200" r="186" fill="none" stroke="url(#gA)" stroke-width="3" stroke-dasharray="70 18 8 18"/>
+ <circle class="spin s2" cx="200" cy="200" r="172" fill="none" style="stroke:var(--c2)" stroke-width="1.6" stroke-dasharray="2 9"/>
+ <circle class="spin s3" cx="200" cy="200" r="128" fill="none" style="stroke:var(--c1)" stroke-width="2" stroke-dasharray="30 14"/></svg>`}
+
+/* ============ background canvas ============ */
+(function(){const cv=$('#bg'),x=cv.getContext('2d');let W=0,H=0,col='#2fb4ff',n=0;const P=[];
+ function size(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight}size();window.addEventListener('resize',size);
+ for(let i=0;i<70;i++)P.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.6+.4});
+ const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+ function frame(){if(n++%45===0)col=(getComputedStyle(document.body).getPropertyValue('--c1')||'#2fb4ff').trim();
+  x.clearRect(0,0,W,H);x.strokeStyle=col;x.fillStyle=col;x.lineWidth=1;x.globalAlpha=.045;
+  for(let gx=0;gx<W;gx+=64){x.beginPath();x.moveTo(gx,0);x.lineTo(gx,H);x.stroke()}
+  for(let gy=0;gy<H;gy+=64){x.beginPath();x.moveTo(0,gy);x.lineTo(W,gy);x.stroke()}
+  for(const p of P){p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;x.globalAlpha=.55;x.beginPath();x.arc(p.x,p.y,p.r,0,6.283);x.fill()}
+  for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const dx=P[i].x-P[j].x,dy=P[i].y-P[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<130){x.globalAlpha=.14*(1-d/130);x.beginPath();x.moveTo(P[i].x,P[i].y);x.lineTo(P[j].x,P[j].y);x.stroke()}}
+  x.globalAlpha=1;if(!reduce)requestAnimationFrame(frame)}
+ frame()})();
+
+/* ============ shells ============ */
+function aShell(inner){const c=S.comp,pend=c?c.requests.filter(r=>r.status==='pending').length:0;
+ const items=[['a-dash','grid','Dashboard'],['a-create','plus','Create Competition'],['a-teams','users','Teams'],['a-req','userplus','Join Requests',pend],['a-admins','shield','Admin Management'],['a-buzz','zap','Buzzer Control'],['a-score','star','Scoring'],['a-lb','chart','Leaderboard'],['a-mon','activity','Monitoring'],['a-hist','clock','History'],['a-set','sliders','Settings']];
+ const nav=items.map(i=>`<a class="nav ${sess.view===i[0]?'on':''}" data-a="go" data-v="${i[0]}">${ic(i[1],17)}<span>${i[2]}</span>${i[3]?`<em class="badge">${i[3]}</em>`:''}</a>`).join('');
+ const adm=S.users.find(u=>u.id===sess.adminId)||{name:'Admin'};
+ return `<div class="shell"><aside class="side"><div class="brand sb">${logo()}<b>BUZZER V2</b></div><nav>${nav}</nav>
+ <div class="side-foot"><a class="nav" data-a="about">${ic('info',17)}<span>About</span></a><a class="nav" data-a="logout">${ic('logout',17)}<span>Logout</span></a></div></aside>
+ <main class="amain"><header class="ahead panel"><div class="hud">Admin Dashboard</div><div class="grow"></div><div class="who"><span class="av">${esc(initials(adm.name))}</span><div><b>${esc(adm.name)}</b><small>Admin</small></div></div></header><div class="abody">${inner}</div></main></div>`}
+function pShell(inner){const c=S.comp,q=qInfo(c),t=myTeam();
+ const nav=[['p-dash','Dashboard'],['p-buzz','Buzzer'],['p-res','Results'],['p-lb','Leaderboard']].map(i=>`<a class="nav ${sess.view===i[0]?'on':''}" data-a="go" data-v="${i[0]}">${i[1]}</a>`).join('');
+ return `<div class="pshell"><header class="phead panel"><div class="brand">${logo()}<b>BUZZER V2</b></div><span class="chip">${esc(c.name)}</span><span class="chip">Q ${q.qi}/${c.qPerRound} · Round ${q.round}</span><div class="grow"></div><nav class="pnav">${nav}</nav>
+ <span class="chip">${ic('user',14)} ${esc(t?t.name:'')}</span><button class="btn sm" data-a="logout">Leave</button></header>${inner}</div>`}
+const empty=(t,m,v,b)=>`<div class="panel empty"><h3>${esc(t)}</h3><p>${esc(m)}</p>${v?`<p style="margin-top:16px"><button class="btn primary" data-a="go" data-v="${v}">${esc(b)}</button></p>`:''}</div>`;
+
+/* ============ public views ============ */
+function vHome(){return `<div class="home"><div class="hero">
+ <div class="hero-logo">${ringSVG(false,false)}<div class="glow-bg"></div>${logo()}</div>
+ <h1>BUZZER V2</h1><div class="tagline">PLAY • BUZZ • WIN</div>
+ ${eqBars(44)}
+ <div class="sub">Real Teams • Real Time • Real Competition</div>
+ <div class="row cta"><button class="btn primary lg" data-a="go" data-v="login">Login</button><button class="btn lg" data-a="go" data-v="register">Register</button></div>
+ <div class="row" style="justify-content:center"><button class="link" data-a="demo">Load demo competition</button><button class="link" data-a="about">About</button></div>
+ <div class="foot">THINK • SOLVE • WIN</div></div></div>`}
+
+function vLogin(){return `<div class="page"><div class="topbar"><div class="brand">${logo()}<b>BUZZER V2</b></div></div>
+ <div class="login-grid">
+ <form class="panel card" data-submit="playerLogin" autocomplete="off"><div class="ico">${ic('users',26)}</div><h2>Player Login</h2><div class="cap">Join the competition as a team</div>
+  <label class="f">Group ID</label><input class="inp" name="group" placeholder="Enter Group ID" required>
+  <label class="f">Password</label><input class="inp" name="pass" type="password" placeholder="Enter Password" required>
+  <button class="btn primary block" type="submit">Login as Player</button></form>
+ <form class="panel card" data-submit="adminLogin" autocomplete="off"><div class="ico">${ic('award',26)}</div><h2>Admin Login</h2><div class="cap">Manage the competition</div>
+  <label class="f">Admin ID</label><input class="inp" name="id" placeholder="Enter Admin ID" required>
+  <label class="f">Password</label><input class="inp" name="pass" type="password" placeholder="Enter Password" required>
+  <button class="btn primary block" type="submit">Login as Admin</button>
+  <div class="center-note">Default admin: <b>admin</b> / <b>admin123</b></div></form></div>
+ <div class="center-note">Don't have an account? <button class="link" data-a="go" data-v="register">Join Now</button> &nbsp;·&nbsp; <button class="link" data-a="forgot">Forgot Password?</button></div>
+ <div class="center-note"><button class="link" data-a="go" data-v="home">← Back to Home</button></div></div>`}
+
+function vRegister(){return `<div class="page"><div class="topbar"><div class="brand">${logo()}<b>BUZZER V2</b></div></div>
+ <form class="panel card" data-submit="register" style="max-width:440px;margin:30px auto 0" autocomplete="off"><div class="ico">${ic('userplus',26)}</div><h2>Create Admin Account</h2><div class="cap">Players don't need an account — they join with a Group ID.</div>
+ <label class="f">Full name</label><input class="inp" name="name" required placeholder="Your name">
+ <label class="f">Admin ID</label><input class="inp" name="id" required placeholder="Choose an Admin ID">
+ <label class="f">Password (min 4 characters)</label><input class="inp" name="pass" type="password" required minlength="4" placeholder="Choose a password">
+ <button class="btn primary block" type="submit">Register</button></form>
+ <div class="center-note"><button class="link" data-a="go" data-v="login">← Back to Login</button></div></div>`}
+
+function vJoin(){const c=S.comp;return `<div class="page"><div class="topbar"><div class="brand">${logo()}<b>BUZZER V2</b></div></div>
+ <div class="login-grid" style="max-width:860px"><form class="panel card" data-submit="joinReq" autocomplete="off"><h2 style="text-align:left">Join Competition</h2>
+ <label class="f">Team Name</label><input class="inp" name="team" required placeholder="Team Alpha">
+ <label class="f">Your Name</label><input class="inp" name="member" required placeholder="Your name">
+ <label class="f">Group ID</label><input class="inp" name="group" required value="${esc(sess.joinGroup||'')}" placeholder="TC2026-001">
+ <label class="f">Password</label><input class="inp" name="pass" type="password" required value="${esc(sess.joinPass||'')}" placeholder="Password">
+ <button class="btn primary block" type="submit">Request to Join</button>
+ <div class="center-note">${c?'':'No competition exists yet.'} New teams need admin approval. Existing teams enter instantly.</div></form>
+ <div class="panel card" style="display:grid;place-items:center;text-align:center"><div class="ring-wrap" style="width:min(300px,70vw)">${ringSVG(false,false)}<div class="rc"><div><div style="color:var(--c1)">${ic('users',54)}</div><div class="tname" style="margin-top:6px">Team Up</div><div class="muted">Compete Together<br>Win Together</div></div></div></div></div></div>
+ <div class="center-note"><button class="link" data-a="go" data-v="login">← Back</button></div></div>`}
+
+function vWait(){const c=S.comp,pd=sess.pending,r=c.requests.find(x=>x.id===pd.id),rej=r&&r.status==='rejected';
+ return `<div class="home"><div class="panel card" style="max-width:440px;text-align:center">${rej?`<div class="ico" style="color:var(--red);border-color:var(--red)">${ic('ban',26)}</div><h2>Request Rejected</h2><p class="muted" style="margin-top:8px">The admin declined the request for <b>${esc(pd.team)}</b>.</p>`
+ :`<div class="wait-spin"></div><h2>Waiting for Approval</h2><p class="muted" style="margin-top:8px">Your request for <b>${esc(pd.team)}</b> was sent to the admin. This page updates automatically.</p>`}
+ <button class="btn block" data-a="pcancel">${rej?'Back to Home':'Cancel Request'}</button></div></div>`}
+
+function vAbout(){return `<div class="home"><div class="hero"><div class="hero-logo">${ringSVG(false,false)}<div class="glow-bg"></div>${logo()}</div><h1 style="font-size:clamp(30px,7vw,52px)">BUZZER V2</h1><div class="tagline">PLAY • BUZZ • WIN</div>${eqBars(40)}
+ <div class="panel pad" style="text-align:left;margin-top:12px;width:100%"><p>A real-time multiplayer competition buzzer. Admins create competitions, approve teams, run questions with countdown timers, award points and watch a live leaderboard. Players join with a Group ID and race to buzz first.</p>
+ <p class="muted" style="margin-top:10px">Real-time sync works across browser tabs/windows on the same device (open Admin in one tab and Players in others). Built with HTML, CSS &amp; JavaScript — v2.0</p></div>
+ <div class="row cta"><button class="btn primary" data-a="aback">Back</button></div></div></div>`}
+
+/* ============ admin views ============ */
+function vADash(){const c=S.comp;if(!c)return aShell(empty('No competition yet','Create a competition to get started.','a-create','Create Competition'));
+ const act=c.teams.filter(t=>t.status==='active').length,el=c.teams.length-act,total=c.teams.reduce((a,t)=>a+tScore(c,t),0);
+ const stat=(i,l,v,cl)=>`<div class="stat ${cl}"><div class="s-ic">${ic(i,22)}</div><div><small>${l}</small><b>${v}</b></div></div>`;
+ const icon={join:'userplus',request:'userplus',buzz:'zap',score:'star',question:'play',restart:'rotate',eliminate:'ban',create:'plus',lock:'lock',admin:'shield'};
+ const rec=c.history.slice(0,6).map(h=>`<div class="act"><span class="av">${ic(icon[h.type]||'info',14)}</span><span class="tm">${hm(h.ts)}</span><span>${esc(h.text)}</span></div>`).join('')||'<div class="empty small">No activity yet.</div>';
+ return aShell(`<section class="panel pad"><div class="dash-head"><div><h2 class="hud">${esc(c.name)}</h2><div class="muted">Group ID: ${esc(c.groupId)} &nbsp;·&nbsp; Password: ${esc(c.pass)}</div></div><span class="chip st-${c.status}"><span class="dot on"></span>${statusLabel(c)}</span></div>
+ <div class="stats">${stat('users','Total Teams',c.teams.length,'')}${stat('activity','Active Teams',act,'g')}${stat('ban','Eliminated',el,'r')}${stat('star','Total Score',total,'y')}</div></section>
+ <div class="two"><section class="panel pad"><h3 class="hud sm">Recent Activity</h3>${rec}</section>
+ <section class="panel pad"><h3 class="hud sm">Quick Actions</h3><div class="qa">
+ <button class="btn" data-a="go" data-v="a-teams">${ic('users')} View Teams</button>
+ <button class="btn" data-a="go" data-v="a-buzz">${ic('zap')} Buzzer Control</button>
+ <button class="btn" data-a="go" data-v="a-score">${ic('star')} Give Score</button>
+ <button class="btn" data-a="elimOpen">${ic('ban')} Eliminate Team</button>
+ <button class="btn" data-a="restartOpen">${ic('rotate')} Restart Question</button></div></section></div>`)}
+
+function vACreate(){const c=S.comp,show=sess.justCreated&&c;
+ const right=c?`<section class="panel pad" style="text-align:center"><div class="bigcrown">${crownSVG}</div><h3 class="hud sm" style="margin-bottom:0">${show?'Competition Created!':'Active Competition'}</h3><div class="muted">${esc(c.name)}</div>
+ <div class="cred"><small>Group ID</small><b>${esc(c.groupId)}</b></div><div class="cred"><small>Password</small><b>${esc(c.pass)}</b></div>
+ <button class="btn block" data-a="copyCreds">${ic('copy',15)} Share with your team</button></section>`
+ :`<section class="panel pad empty"><h3>Credentials</h3><p>Group ID and password appear here once the competition is created.</p></section>`;
+ return aShell(`<div class="create-grid"><form class="panel pad" data-submit="createComp" autocomplete="off"><h3 class="hud sm">${ic('plus',16)} Create New Competition</h3>
+ <label class="f">Competition Name</label><input class="inp" id="f-name" name="name" placeholder="Tech Challenge 2026" required>
+ <label class="f">Group ID</label><div class="ig"><input class="inp" id="f-group" name="group" placeholder="Auto Generated"><button type="button" class="btn sm" data-a="genGroup">Generate</button></div>
+ <label class="f">Admin ID</label><input class="inp" name="admin" value="${esc(sess.adminId)}" readonly>
+ <label class="f">Competition Password</label><div class="ig"><input class="inp" id="f-pass" name="pass" placeholder="Auto Generated"><button type="button" class="btn sm" data-a="genPass">Generate</button></div>
+ <h3 class="hud sm" style="margin-top:18px">Competition Settings</h3>
+ <div class="grid3"><div><label class="f">Total Rounds</label><input class="inp" name="rounds" type="number" min="1" max="20" value="3"></div>
+ <div><label class="f">Questions / Round</label><input class="inp" name="qpr" type="number" min="1" max="50" value="5"></div>
+ <div><label class="f">Time / Question (s)</label><input class="inp" name="time" type="number" min="5" max="600" value="60"></div></div>
+ <button class="btn primary block" type="submit" style="margin-top:20px">Create Competition</button></form>${right}</div>`)}
+
+function vATeams(){const c=S.comp;if(!c)return aShell(empty('No competition yet','Create a competition first.','a-create','Create Competition'));
+ const P=getP();
+ const rows=c.teams.map(t=>`<tr><td><b>${esc(t.name)}</b></td><td>${t.members.length}/${c.maxMembers}</td><td><span class="${t.status==='active'?'on-t':'off-t'}">${t.status==='active'?'Active':'Eliminated'}</span> ${t.status==='active'&&teamOnline(t,P)?'<span class="dot on"></span>':''}</td><td>${tScore(c,t)}</td>
+ <td>${t.status==='active'?`<button class="btn sm danger" data-a="teamElim" data-id="${t.id}">Eliminate</button>`:`<button class="btn sm ok" data-a="teamBack" data-id="${t.id}">Reinstate</button>`} <button class="btn sm" data-a="teamDel" data-id="${t.id}">${ic('trash',12)}</button></td></tr>`).join('');
+ return aShell(`<section class="panel pad"><div class="row" style="margin-bottom:12px"><h3 class="hud sm" style="margin:0">${ic('users',16)} Teams Management</h3><div class="grow"></div><button class="btn sm" data-a="addTeamOpen">+ Add Team</button><button class="btn sm" data-a="exportCsv">${ic('download',12)} Export</button></div>
+ ${c.teams.length?`<div class="tscroll"><table class="tbl"><thead><tr><th>Team Name</th><th>Members</th><th>Status</th><th>Total Score</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty small">No teams yet. Players can request to join, or add a team manually.</div>'}</section>`)}
+
+function vAReq(){const c=S.comp;if(!c)return aShell(empty('No competition yet','Create a competition first.','a-create','Create Competition'));
+ const rows=c.requests.slice().reverse().map(r=>`<tr><td><b>${esc(r.team)}</b></td><td>${esc(r.by)}</td><td>${hm(r.ts)}</td><td><span class="tag ${r.status==='pending'?'pend':r.status==='accepted'?'acc':'rej'}">${r.status==='pending'?'Pending':r.status==='accepted'?'Accepted':'Rejected'}</span></td>
+ <td>${r.status==='pending'?`<button class="btn sm ok" data-a="reqAccept" data-id="${r.id}">Accept</button> <button class="btn sm danger" data-a="reqReject" data-id="${r.id}">Reject</button>`:'—'}</td></tr>`).join('');
+ return aShell(`<section class="panel pad"><h3 class="hud sm">${ic('userplus',16)} Join Requests</h3>${c.requests.length?`<div class="tscroll"><table class="tbl"><thead><tr><th>Team Name</th><th>Requested By</th><th>Time</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty small">No join requests yet.</div>'}</section>`)}
+
+function vAAdmins(){const rows=S.users.map(u=>`<tr><td><span class="av">${esc(initials(u.name))}</span></td><td><b>${esc(u.name)}</b></td><td>${esc(u.id)}</td><td>${u.id===sess.adminId?'<span class="tag acc">You</span>':`<button class="btn sm danger" data-a="delAdmin" data-id="${esc(u.id)}">${ic('trash',12)}</button>`}</td></tr>`).join('');
+ return aShell(`<div class="two" style="grid-template-columns:1.4fr 1fr"><section class="panel pad"><h3 class="hud sm">${ic('shield',16)} Admin Management</h3><div class="tscroll"><table class="tbl"><thead><tr><th></th><th>Name</th><th>Admin ID</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div></section>
+ <form class="panel pad" data-submit="addAdmin" autocomplete="off"><h3 class="hud sm">Add Admin</h3><label class="f">Full name</label><input class="inp" name="name" required><label class="f">Admin ID</label><input class="inp" name="id" required><label class="f">Password</label><input class="inp" name="pass" type="password" minlength="4" required><button class="btn primary block" style="margin-top:16px" type="submit">Add Admin</button></form></div>`)}
+
+function vABuzz(){const c=S.comp;if(!c)return aShell(empty('No competition yet','Create a competition first.','a-create','Create Competition'));
+ const st=bzState(c),q=qInfo(c),ta=timerAttrs(c),o=c.buzzer.order,ended=c.status==='ended';
+ const stTxt={idle:'STANDBY',active:'BUZZER LIVE',locked:'LOCKED',ended:"TIME'S UP"}[st];
+ const rows=o.map((x,i)=>{const t=c.teams.find(z=>z.id===x.team);return `<div class="orow ${i===0?'first':''}"><span class="rank">${i+1}</span><div><b>${esc(t?t.name:'?')}</b><small style="text-align:left">${esc(x.by||'')} · ${clock(x.ts)} · +${((x.ts-o[0].ts)/1000).toFixed(3)}s</small></div><button class="btn sm ok" data-a="award" data-id="${x.team}">+Pts</button></div>`}).join('')||'<div class="empty small">Waiting for buzzes…</div>';
+ return aShell(`<div class="bl"><section class="panel stage"><div class="stop"><span class="chip">Q ${q.qi}/${c.qPerRound} · Round ${q.round}/${c.totalRounds}</span><span class="chip st-${st==='active'?'active':st==='idle'?'waiting':'ended'}">${stTxt}</span></div>
+ <div class="ring-wrap" style="width:min(300px,76vw)">${ringSVG(st==='active',true,c)}<div class="rc"><div><div class="muted">Time Left</div><div class="score" data-cd="${ta.cd}">${ta.txt}</div></div></div></div>
+ <div class="row" style="justify-content:center;margin-top:18px">
+ <button class="btn primary" data-a="startQ" ${ended?'disabled':''}>${ic('play',14)} ${o.length||st!=='idle'?'Restart Timer':'Start Question'}</button>
+ <button class="btn warn" data-a="lockQ" ${st==='active'?'':'disabled'}>${ic('lock',14)} Lock</button>
+ <button class="btn" data-a="resetBuzz">${ic('rotate',14)} Reset Buzzer</button>
+ <button class="btn" data-a="nextQ" ${ended?'disabled':''}>${ic('skip',14)} ${q.qi===c.qPerRound&&c.round===c.totalRounds?'Finish':'Next Question'}</button></div>
+ <div class="row" style="justify-content:center;margin-top:12px"><button class="btn sm danger" data-a="restartOpen">Restart Question</button>
+ <label class="muted" style="font-size:13px">Award marks: <input id="award-marks" class="inp" type="number" value="10" style="width:80px;display:inline-block;padding:5px 8px"></label></div>
+ ${ended?'<p class="muted" style="margin-top:12px">Competition finished. View the final leaderboard.</p>':''}</section>
+ <section class="panel pad"><h3 class="hud sm">${ic('zap',15)} Live Order</h3>${rows}</section></div>`)}
+
+function vAScore(){const c=S.comp;if(!c)return aShell(empty('No competition yet','Create a competition first.','a-create','Create Competition'));
+ const opts=c.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
+ const hist=c.scores.slice().reverse().slice(0,40).map((s,i)=>{const t=c.teams.find(x=>x.id===s.team);return `<tr><td>${i+1}</td><td>${esc(t?t.name:'(removed)')}</td><td class="${s.marks>=0?'up':'dn'}">${s.marks>=0?'+':''}${s.marks}</td><td>${hm(s.ts)}</td><td class="muted">${esc(s.reason||'')}</td></tr>`}).join('');
+ return aShell(`<div class="create-grid" style="grid-template-columns:1fr 1.3fr"><form class="panel pad" data-submit="giveScore" autocomplete="off"><h3 class="hud sm">${ic('star',16)} Give Score</h3>
+ <label class="f">Team</label><select class="inp" id="sc-team" name="team" required>${opts||'<option value="">No teams</option>'}</select>
+ <label class="f">Marks</label><div class="ig"><button type="button" class="btn sm" data-a="step" data-d="-5">−</button><input class="inp" id="sc-marks" name="marks" type="number" value="10" required style="text-align:center"><button type="button" class="btn sm" data-a="step" data-d="5">+</button></div>
+ <label class="f">Reason (optional)</label><input class="inp" name="reason" placeholder="Correct Answer">
+ <button class="btn primary block" type="submit" style="margin-top:18px" ${c.teams.length?'':'disabled'}>Add Score</button></form>
+ <section class="panel pad"><h3 class="hud sm">Score History</h3>${c.scores.length?`<div class="tscroll"><table class="tbl"><thead><tr><th>#</th><th>Team</th><th>Marks</th><th>Time</th><th>Reason</th></tr></thead><tbody>${hist}</tbody></table></div>`:'<div class="empty small">No scores awarded yet.</div>'}
+ <p style="margin-top:12px" class="muted">Total Score (<span id="sc-name"></span>): <b id="sc-total" style="color:#fff;font-family:var(--fd)">0</b></p></section></div>`)}
+
+function lbHTML(c){const R=ranked(c);
+ const slot=(i,cl)=>{const r=R[i];return r?`<div class="pod ${cl}"><div class="medal">${i+1}</div><div class="pn">${esc(r.t.name)}</div><div class="pp">${r.score} pts</div><div class="bar"></div></div>`:`<div class="pod ${cl} empty"><div class="medal">${i+1}</div><div class="pn">—</div><div class="pp">&nbsp;</div><div class="bar"></div></div>`};
+ const trend=t=>{const l=c.scores.filter(s=>s.team===t.id).pop();return !l?'<span class="muted">—</span>':l.marks>0?'<span class="up">▲</span>':l.marks<0?'<span class="dn">▼</span>':'<span class="muted">—</span>'};
+ const rest=R.slice(3).map((r,i)=>`<tr><td>${i+4}</td><td><b>${esc(r.t.name)}</b> ${r.t.status==='eliminated'?'<span class="tag rej">Out</span>':''}</td><td>${r.score}</td><td>${trend(r.t)}</td></tr>`).join('');
+ const q=qInfo(c);
+ return `<section class="panel pad"><div class="row" style="margin-bottom:26px"><h3 class="hud sm" style="margin:0">${ic('award',16)} Live Leaderboard</h3><div class="grow"></div><span class="chip">${esc(c.name)}</span><span class="chip">Round ${q.round}</span></div>
+ ${c.teams.length?`<div class="podium" style="margin-top:34px">${slot(1,'p2')}${slot(0,'p1')}${slot(2,'p3')}</div>${rest?`<div class="tscroll"><table class="tbl"><thead><tr><th>#</th><th>Team</th><th>Score</th><th>Trend</th></tr></thead><tbody>${rest}</tbody></table></div>`:''}`:'<div class="empty small">No teams yet.</div>'}</section>`}
+const vALb=()=>S.comp?aShell(lbHTML(S.comp)):aShell(empty('No competition yet','Create a competition first.','a-create','Create Competition'));
+
+function vAMon(){const c=S.comp;if(!c)return aShell(empty('No competition yet','Create a competition first.','a-create','Create Competition'));
+ const P=getP(),on=c.teams.filter(t=>teamOnline(t,P)).length;
+ const rows=c.teams.map(t=>{const o=teamOnline(t,P);return `<tr><td><b>${esc(t.name)}</b></td><td><span class="dot ${o?'on':''}"></span>${o?'Online':'Offline'}</td><td>${clock(lastSeen(t,P))}</td></tr>`}).join('');
+ const stat=(i,l,v,cl)=>`<div class="stat ${cl}"><div class="s-ic">${ic(i,22)}</div><div><small>${l}</small><b>${v}</b></div></div>`;
+ return aShell(`<section class="panel pad"><h3 class="hud sm">${ic('activity',16)} Live Monitoring</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">${stat('activity','Online',on,'g')}${stat('ban','Offline',c.teams.length-on,'r')}${stat('users','Total',c.teams.length,'')}</div></section>
+ <section class="panel pad"><h3 class="hud sm">Team Status</h3>${c.teams.length?`<div class="tscroll"><table class="tbl"><thead><tr><th>Team</th><th>Status</th><th>Last Seen</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty small">No teams yet.</div>'}</section>`)}
+
+function vAHist(){const c=S.comp;if(!c)return aShell(empty('No competition yet','Create a competition first.','a-create','Create Competition'));
+ const rows=c.history.map(h=>`<tr><td>${clock(h.ts)}</td><td>${esc(h.type)}</td><td>${esc(h.text)}</td></tr>`).join('');
+ return aShell(`<section class="panel pad"><h3 class="hud sm">${ic('clock',16)} Competition History</h3>${c.history.length?`<div class="tscroll"><table class="tbl"><thead><tr><th>Time</th><th>Event</th><th>Details</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty small">No history yet.</div>'}</section>`)}
+
+function vASet(){const s=S.settings,sw=(n,l,v)=>`<div class="setrow"><span>${l}</span><div class="grow"></div><label class="sw"><input type="checkbox" name="${n}" ${v?'checked':''}><i></i></label></div>`;
+ return aShell(`<form class="panel pad" data-submit="saveSettings" style="max-width:640px"><h3 class="hud sm">${ic('sliders',16)} Competition Settings</h3>
+ ${sw('sound','Sound Effects',s.sound)}${sw('notif','Notifications',s.notif)}${sw('autoNext','Auto Next Question (after awarding points in Buzzer Control)',s.autoNext)}
+ <label class="f">Theme</label><select class="inp" name="theme">${[['neon','Tech Neon'],['purple','Cyber Purple'],['matrix','Matrix Green'],['solar','Solar Gold']].map(t=>`<option value="${t[0]}" ${s.theme===t[0]?'selected':''}>${t[1]}</option>`).join('')}</select>
+ <label class="f">Audio Volume: <span id="vol-l">${s.volume}</span>%</label><input type="range" name="volume" min="0" max="100" value="${s.volume}">
+ <button class="btn primary block" type="submit" style="margin-top:20px">Save Changes</button></form>`)}
+
+/* ============ player views ============ */
+function vPDash(){const c=S.comp,t=myTeam(),q=qInfo(c),st=bzState(c),ta=timerAttrs(c),P=getP(),sc=tScore(c,t);
+ const live=st==='active'&&t.status==='active'&&!c.buzzer.order.some(o=>o.team===t.id);
+ const stTxt={idle:'Waiting for the next question',active:'BUZZER ACTIVE — GO!',locked:'Buzzer locked',ended:"Time's up"}[st];
+ const mem=t.members.map(m=>{const o=memberOnline(t,m,P);return `<div class="mem"><span class="av">${esc(initials(m))}</span><span>${esc(m)}</span><small class="${o?'on-t':'off-t'}"><span class="dot ${o?'on':''}"></span>${o?'Online':'Offline'}</small></div>`}).join('');
+ return pShell(`<div class="pm"><section class="panel pad"><div class="row"><div><div class="muted">Competition</div><h2 class="hud" style="font-size:20px">${esc(c.name)}</h2><div class="muted">Group ID: ${esc(c.groupId)}</div></div><div class="grow"></div><span class="chip st-${c.status}">${statusLabel(c)}</span></div>
+ ${t.status==='eliminated'?'<div class="elim-pv" style="margin-top:12px">YOUR TEAM HAS BEEN ELIMINATED</div>':''}
+ <div class="pm-grid"><div><div class="mini"><small>Next Question</small><b>Q${q.qi} / ${c.qPerRound}</b><small>(Round ${q.round} of ${c.totalRounds})</small></div><div class="mini t"><small>Time Left</small><b data-cd="${ta.cd}">${ta.txt}</b></div><div class="mini"><small>Status</small><b style="font-size:13px">${stTxt}</b></div></div>
+ <div class="ring-wrap" style="width:min(340px,80vw)">${ringSVG(live,true,c)}<div class="rc"><div><div class="tname">${esc(t.name.toUpperCase())}</div><div class="muted" style="margin-top:6px">Your Score</div><div class="score">${sc}</div><div class="muted">Rank <b style="color:#fff">${rankOf(c,t.id)}</b> / ${c.teams.length}</div></div></div></div></div>
+ <button class="press ${live?'live':''}" data-a="go" data-v="p-buzz">${ic('pointer',20)} Press Buzzer</button></section>
+ <aside class="panel pad"><h3 class="hud sm">Team Members</h3>${mem}<div class="muted" style="margin-top:10px;font-size:13px">${t.members.length}/${c.maxMembers} members</div></aside></div>`)}
+
+function vPBuzz(){const c=S.comp,t=myTeam(),st=bzState(c),o=c.buzzer.order,ta=timerAttrs(c),mine=o.findIndex(x=>x.team===t.id);
+ let cls='',b='BUZZER STANDBY',sub='Waiting for admin…',head='Waiting for players...';
+ if(t.status==='eliminated'){cls='dead';b='ELIMINATED';sub='Your team is out';head='You are out of the competition'}
+ else if(mine>=0){cls='done';b='YOU BUZZED!';sub='Position #'+(mine+1);head=mine===0?'You buzzed first!':'Buzz registered'}
+ else if(st==='active'){cls='go';b='BUZZER ACTIVE';sub='Press to buzz! (Space)';head='GO GO GO!'}
+ else if(st==='ended'){cls='dead';b="TIME'S UP";sub='Too late';head='Question closed'}
+ else if(st==='locked'){cls='dead';b='LOCKED';sub='Buzzer locked by admin';head='Buzzer locked'}
+ const rows=o.map((x,i)=>{const tm=c.teams.find(z=>z.id===x.team);return `<div class="orow ${i===0?'first':''} ${x.team===t.id?'mine':''}"><span class="rank">${i+1}</span><b>${esc(tm?tm.name:'?')}</b><small>+${((x.ts-o[0].ts)/1000).toFixed(3)}s</small></div>`}).join('')||'<div class="empty small">No buzzes yet</div>';
+ const q=qInfo(c);
+ return pShell(`<div class="bl"><section class="panel stage"><div class="stop"><span class="chip">${esc(head)}</span><span class="chip">${ic('clock',14)} <b data-cd="${ta.cd}">${ta.txt}</b></span></div>
+ <div class="ring-wrap">${ringSVG(st==='active'&&!o.length||cls==='go',true,c)}<button class="big-buzz ${cls}" data-a="buzz" ${cls==='go'?'':'disabled'}>${ic('pointer',44)}<b>${b}</b><span>${sub}</span></button></div>
+ ${eqBars(48)}<div class="muted">Q ${q.qi}/${c.qPerRound} · Round ${q.round}</div><div class="row" style="justify-content:center;margin-top:10px"><button class="btn sm" data-a="go" data-v="p-res">View Results</button></div></section>
+ <aside class="panel pad"><h3 class="hud sm">Live Order</h3>${rows}</aside></div>`)}
+
+function vPRes(){const c=S.comp,t=myTeam(),o=c.buzzer.order,first=o[0]&&c.teams.find(x=>x.id===o[0].team);
+ const rows=o.map((x,i)=>{const tm=c.teams.find(z=>z.id===x.team);return `<div class="orow ${i===0?'first':''} ${x.team===t.id?'mine':''}" style="grid-template-columns:34px 1fr auto"><span class="rank">${i+1}</span><b>${esc(tm?tm.name:'?')}</b><div><small>${clock(x.ts)}</small><small>+${((x.ts-o[0].ts)/1000).toFixed(3)}s</small></div></div>`}).join('')||'<div class="empty small">No buzzes yet for this question.</div>';
+ return pShell(`<div class="res"><section class="panel pad"><h3 class="hud sm">${ic('zap',15)} Buzzer Order</h3>${rows}</section>
+ <section class="panel crown-card">${first?`<div class="burst"></div><div class="cc">${crownSVG}<div class="ct">${esc(first.name)}</div><div style="font-weight:700;letter-spacing:.08em">Buzzed First!</div></div>`:`<div class="cc muted"><div style="opacity:.5;width:90px;margin:0 auto">${crownSVG}</div><p style="margin-top:10px">Waiting for the first buzz…</p></div>`}</section></div>`)}
+
+const vPLb=()=>pShell(lbHTML(S.comp));
+
+/* ============ render ============ */
+const LIVE=new Set(['a-dash','a-teams','a-req','a-buzz','a-lb','a-mon','a-hist','p-dash','p-buzz','p-res','p-lb','p-wait']);
+const VIEWS={home:vHome,login:vLogin,register:vRegister,join:vJoin,about:vAbout,'p-wait':vWait,'a-dash':vADash,'a-create':vACreate,'a-teams':vATeams,'a-req':vAReq,'a-admins':vAAdmins,'a-buzz':vABuzz,'a-score':vAScore,'a-lb':vALb,'a-mon':vAMon,'a-hist':vAHist,'a-set':vASet,'p-dash':vPDash,'p-buzz':vPBuzz,'p-res':vPRes,'p-lb':vPLb};
+let lastSt='idle';
+function guard(){let v=sess.view;
+ if(!VIEWS[v]){sess.view='home';return}
+ if(v.startsWith('a-')&&sess.role!=='admin'){sess.view='home';return}
+ if(v==='p-wait'){const c=S.comp,pd=sess.pending;
+  if(!pd||!c||c.groupId!==pd.group){sess.pending=null;sess.view='home';return}
+  const r=c.requests.find(x=>x.id===pd.id);if(!r){sess.pending=null;sess.view='home';return}
+  if(r.status==='accepted'){const t=c.teams.find(x=>x.name.toLowerCase()===r.team.toLowerCase());
+   if(t){sess.role='player';sess.team=t.id;sess.member=pd.by;sess.group=c.groupId;sess.pending=null;sess.view='p-dash';beat();toast('Request approved — welcome!','ok')}}
+  return}
+ if(v.startsWith('p-')){if(sess.role!=='player'){sess.view='home';return}
+  const c=S.comp,t=c&&c.teams.find(x=>x.id===sess.team);
+  if(!t||c.groupId!==sess.group){sess.role=null;sess.team=null;sess.view='home';toast('You are no longer part of this competition','err')}}}
+function render(){
+ guard();
+ const y=window.scrollY;
+ document.body.dataset.theme=S.settings.theme||'neon';
+ $('#app').innerHTML=VIEWS[sess.view]();
+ if(S.comp)lastSt=bzState(S.comp);
+ saveSess();paint();
+ if(sess.view==='a-score')updTotal();
+ window.scrollTo(0,y)}
+function paint(){const now=Date.now();
+ $$('[data-cd]').forEach(el=>{const e=+el.dataset.cd;if(e)el.textContent=fmtMS(Math.max(0,e-now))});
+ $$('[data-ring]').forEach(el=>{const s=+el.dataset.s,e=+el.dataset.e,C=+el.dataset.c;let f=1;if(e)f=Math.max(0,Math.min(1,(e-now)/(e-s)));el.style.strokeDashoffset=(C*(1-f)).toFixed(2)})}
+function updTotal(){const c=S.comp,sel=$('#sc-team');if(!c||!sel)return;const t=c.teams.find(x=>x.id===sel.value);$('#sc-name').textContent=t?t.name:'—';$('#sc-total').textContent=t?tScore(c,t):0}
+function updElim(){const c=S.comp,sel=$('#el-team'),pv=$('#el-pv');if(!c||!sel||!pv)return;const t=c.teams.find(x=>x.id===sel.value);pv.textContent=t?t.name+' will be eliminated from the competition.':'No active team available.'}
+
+setInterval(()=>{paint();const c=S.comp;if(c){const st=bzState(c);if(st!==lastSt){const was=lastSt;lastSt=st;if(st==='ended'&&was==='active')beep(220,.4,'sawtooth');if(LIVE.has(sess.view))render()}}},250);
+setInterval(()=>{if(sess.role==='player')beat();if(['a-dash','a-mon','a-teams','p-dash'].includes(sess.view))render()},4000);
+
+/* ============ cross-tab sync ============ */
+function onSync(){const raw=store.get(KEY);if(raw===lastRaw)return;lastRaw=raw;
+ const prev=S;S=loadS();const pc=prev.comp,nc=S.comp;
+ if(nc&&pc&&pc.groupId===nc.groupId){
+  if(nc.buzzer.order.length>pc.buzzer.order.length){const t=nc.teams.find(x=>x.id===nc.buzzer.order[nc.buzzer.order.length-1].team);beep(660,.15,'square');if(sess.role==='admin')evToast((t?t.name:'A team')+' buzzed!')}
+  if(bzState(nc)==='active'&&pc.buzzer.startedAt!==nc.buzzer.startedAt){beep(880,.25);setTimeout(()=>beep(1175,.25),160);if(sess.role==='player'&&sess.view==='p-dash')sess.view='p-buzz'}
+  const pp=pc.requests.filter(r=>r.status==='pending').length,np=nc.requests.filter(r=>r.status==='pending').length;
+  if(np>pp&&sess.role==='admin')evToast('New join request received')}
+ if(LIVE.has(sess.view))render();
+ else if(sess.view.startsWith('a-')){/* keep forms intact, refresh sidebar badge only */const b=$('.nav .badge');const n=nc?nc.requests.filter(r=>r.status==='pending').length:0;if(b&&!n)b.remove()}}
+window.addEventListener('storage',e=>{if(e.key===KEY)onSync()});
+if(bc)bc.onmessage=onSync;
+window.addEventListener('beforeunload',()=>beat(false));
+
+/* ============ actions ============ */
+function enterPlayer(c,teamId,member){sess.role='player';sess.team=teamId;sess.member=member;sess.group=c.groupId;sess.pending=null;beat();go('p-dash')}
+function seedDemo(){mutate(s=>{const now=Date.now(),mk=(n,m,b,x)=>Object.assign({id:uid(),name:n,members:m,status:'active',base:b,joinedAt:now,sim:true,lastSeen:now},x||{});
+ s.comp={name:'Tech Challenge 2026',groupId:'TC2026-001',pass:'B7ZK29',adminId:'admin',totalRounds:3,qPerRound:5,timeLimit:60,maxMembers:5,status:'ongoing',round:1,q:3,created:now,
+ teams:[mk('Team Alpha',['Arun','Vikram','Sneha','Karthik'],120),mk('Team Beta',['Sanjay','Priya','Dev'],85),mk('Team Gamma',['Meera','Rahul','Isha'],95),mk('Team Delta',['Nikhil','Anaya','Zoya'],70),mk('Team Epsilon',['Vignesh','Lakshmi','Ravi'],60),mk('Team Zeta',['Harini','Ajay','Divya'],50,{status:'eliminated',simOff:true,lastSeen:now-3600000})],
+ requests:[{id:uid(),team:'Team Eta',by:'Vignesh',ts:now-420000,status:'pending'},{id:uid(),team:'Team Theta',by:'Karthik',ts:now-300000,status:'pending'}],
+ scores:[],history:[],buzzer:{state:'idle',startedAt:0,endsAt:0,order:[]}};
+ const c=s.comp;log(c,'create','Competition "Tech Challenge 2026" created');log(c,'join','Team Alpha joined the competition');log(c,'request','Team Eta requested to join');log(c,'request','Team Theta requested to join')},{quiet:true});
+ sess.justCreated=false;render();toast('Demo loaded — Admin: admin / admin123 · Player: TC2026-001 / B7ZK29. Join as "Team Alpha" + member "Arun".','ok')}
+
+const A={
+ go(el){go(el.dataset.v)},
+ about(){sess.back=sess.view;go('about')},
+ aback(){go(sess.role==='admin'?'a-dash':sess.role==='player'?'p-dash':'home')},
+ logout(){beat(false);const th=sess.theme;sess={view:'home'};saveSess();render()},
+ forgot(){toast('Default admin is admin / admin123. Competition passwords are shown on the admin dashboard.')},
+ demo(){S=loadS();if(S.comp)confirmBox('Replace competition?','Loading the demo replaces the current competition, teams and scores.','Load Demo',seedDemo);else seedDemo()},
+ mclose(el,e){if(e.target===el)closeModal()},
+ mx(){closeModal();confirmFn=null},
+ confirmOk(){const fn=confirmFn;confirmFn=null;closeModal();if(fn)fn()},
+ genGroup(){$('#f-group').value=genGroup($('#f-name').value)},
+ genPass(){$('#f-pass').value=genPass()},
+ copyCreds(){const c=S.comp;if(!c)return;const txt=`Join BUZZER V2 — ${c.name}\nGroup ID: ${c.groupId}\nPassword: ${c.pass}`;
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Credentials copied','ok')}catch(e){toast('Copy failed','err')}ta.remove()};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>toast('Credentials copied','ok')).catch(fb);else fb()},
+ pcancel(){const pd=sess.pending;if(pd)mutate(s=>{if(s.comp){const r=s.comp.requests.find(x=>x.id===pd.id);if(r&&r.status==='pending')s.comp.requests=s.comp.requests.filter(x=>x.id!==pd.id)}},{quiet:true});sess.pending=null;go('home')},
+ reqAccept(el){mutate(s=>{const c=s.comp,r=c.requests.find(x=>x.id===el.dataset.id);if(!r||r.status!=='pending')return;r.status='accepted';
+  if(!c.teams.some(t=>t.name.toLowerCase()===r.team.toLowerCase()))c.teams.push({id:uid(),name:r.team,members:[r.by],status:'active',base:0,joinedAt:Date.now()});log(c,'join',r.team+' joined the competition')});toast('Team accepted','ok')},
+ reqReject(el){mutate(s=>{const c=s.comp,r=c.requests.find(x=>x.id===el.dataset.id);if(!r||r.status!=='pending')return;r.status='rejected';log(c,'request',r.team+' request rejected')});toast('Request rejected')},
+ addTeamOpen(){openModal(`<h3>Add Team</h3><form data-submit="addTeam" autocomplete="off"><label class="f">Team name</label><input class="inp" name="team" required autofocus><div class="mbtns"><button type="button" class="btn" data-a="mx">Cancel</button><button class="btn primary" type="submit">Add</button></div></form>`)},
+ teamElim(el){mutate(s=>{const t=s.comp.teams.find(x=>x.id===el.dataset.id);if(t){t.status='eliminated';log(s.comp,'eliminate',t.name+' was eliminated')}});toast('Team eliminated')},
+ teamBack(el){mutate(s=>{const t=s.comp.teams.find(x=>x.id===el.dataset.id);if(t){t.status='active';log(s.comp,'join',t.name+' was reinstated')}});toast('Team reinstated','ok')},
+ teamDel(el){const id=el.dataset.id,t=S.comp.teams.find(x=>x.id===id);if(!t)return;confirmBox('Remove team?',`Remove ${t.name} and its score history permanently?`,'Remove',()=>{mutate(s=>{const c=s.comp;c.teams=c.teams.filter(x=>x.id!==id);c.scores=c.scores.filter(x=>x.team!==id);c.buzzer.order=c.buzzer.order.filter(x=>x.team!==id);log(c,'eliminate',t.name+' was removed')});toast('Team removed')})},
+ exportCsv(){const c=S.comp;if(!c)return;const rows=[['Team','Members','Status','Score']].concat(c.teams.map(t=>[t.name,t.members.join('; '),t.status,tScore(c,t)]));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='buzzer-v2-teams.csv';document.body.appendChild(a);a.click();a.remove();toast('CSV exported','ok')},
+ delAdmin(el){const id=el.dataset.id;if(S.users.length<=1)return toast('At least one admin is required','err');mutate(s=>{s.users=s.users.filter(u=>u.id!==id)});toast('Admin removed')},
+ startQ(){mutate(s=>{const c=s.comp;if(!c||c.status==='ended')return;const now=Date.now();c.buzzer={state:'active',startedAt:now,endsAt:now+c.timeLimit*1000,order:[]};c.status='ongoing';const q=qInfo(c);log(c,'question',`Question ${q.qi} started (Round ${q.round})`)});beep(880,.2);setTimeout(()=>beep(1175,.25),150)},
+ lockQ(){mutate(s=>{const c=s.comp;if(c&&bzState(c)==='active'){c.buzzer.state='locked';log(c,'lock','Buzzer locked')}})},
+ resetBuzz(){mutate(s=>{const c=s.comp;if(!c)return;c.buzzer={state:'idle',startedAt:0,endsAt:0,order:[]};log(c,'restart','Buzzer reset')})},
+ nextQ(){mutate(s=>{const c=s.comp;if(!c||c.status==='ended')return;const total=c.totalRounds*c.qPerRound;c.buzzer={state:'idle',startedAt:0,endsAt:0,order:[]};
+  if(c.q>=total){c.status='ended';log(c,'question','Competition finished')}else{c.q++;c.round=Math.ceil(c.q/c.qPerRound);const q=qInfo(c);log(c,'question',`Moved to question ${q.qi} (Round ${q.round})`)}})},
+ restartOpen(){const c=S.comp;if(!c)return toast('No competition','err');const q=qInfo(c);openModal(`<div style="text-align:center"><div style="color:var(--red)">${ic('rotate',40)}</div><h3 style="margin-top:8px">Restart question?</h3></div><p class="muted" style="text-align:center">Current progress will be reset for this question only.</p><p style="text-align:center;margin-top:8px">Question: <b>${q.qi}/${c.qPerRound}</b> &nbsp; Round: <b>${q.round}</b></p><div class="mbtns" style="justify-content:center"><button class="btn" data-a="mx">Cancel</button><button class="btn danger" data-a="restartDo">Restart</button></div>`)},
+ restartDo(){closeModal();mutate(s=>{const c=s.comp;if(!c)return;c.buzzer={state:'idle',startedAt:0,endsAt:0,order:[]};const q=qInfo(c);log(c,'restart',`Question ${q.qi} restarted`)});toast('Question restarted','ok')},
+ elimOpen(){const c=S.comp;if(!c)return toast('No competition','err');const act=c.teams.filter(t=>t.status==='active');if(!act.length)return toast('No active teams to eliminate','err');
+  openModal(`<h3>${ic('ban',16)} Eliminate Team</h3><form data-submit="eliminate" autocomplete="off"><label class="f">Select Team</label><select class="inp" id="el-team" name="team">${act.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select>
+  <label class="f">Reason</label><input class="inp" name="reason" placeholder="Disqualified"><div class="elim-pv" id="el-pv"></div><div class="mbtns"><button type="button" class="btn" data-a="mx">Cancel</button><button class="btn danger" type="submit">Eliminate Team</button></div></form>`);updElim()},
+ award(el){const m=parseInt($('#award-marks').value,10);if(isNaN(m)||m===0)return toast('Enter valid marks','err');const auto=S.settings.autoNext;
+  mutate(s=>{const c=s.comp,t=c.teams.find(x=>x.id===el.dataset.id);if(!t)return;c.scores.push({id:uid(),team:t.id,marks:m,reason:'Buzzer round',ts:Date.now()});log(c,'score',`${t.name} scored ${m>0?'+':''}${m}`)});toast('Points awarded','ok');
+  if(auto)A.nextQ()},
+ step(el){const i=$('#sc-marks');i.value=(parseInt(i.value,10)||0)+parseInt(el.dataset.d,10)},
+ buzz(){if(sess.role!=='player')return;let ok=false;
+  mutate(s=>{const c=s.comp;if(!c||bzState(c)!=='active')return;const t=c.teams.find(x=>x.id===sess.team);if(!t||t.status!=='active')return;if(c.buzzer.order.some(o=>o.team===t.id))return;
+   c.buzzer.order.push({team:t.id,by:sess.member,ts:Date.now()});log(c,'buzz',`${t.name} buzzed (#${c.buzzer.order.length})`);ok=true});
+  if(ok){beep(740,.12,'square');setTimeout(()=>beep(990,.2,'square'),110)}else toast('Buzzer is not active','err')}
+};
+const SUBMITS={
+ playerLogin(f){S=loadS();const g=fv(f,'group').trim().toUpperCase(),p=fv(f,'pass'),c=S.comp;
+  if(!c)return toast('No competition found in this browser. Admin must create one first (or click "Load demo competition" on the home page).','err');
+  if(c.groupId.toUpperCase()!==g||c.pass.toUpperCase()!==p.trim().toUpperCase())return toast('Invalid Group ID or password','err');sess.joinGroup=c.groupId;sess.joinPass=c.pass;go('join')},
+ adminLogin(f){S=loadS();const id=fv(f,'id').trim().toLowerCase(),u=S.users.find(x=>x.id.toLowerCase()===id&&x.pass===fv(f,'pass'));
+  if(!u)return toast('Invalid Admin ID or password','err');sess.role='admin';sess.adminId=u.id;toast('Welcome, '+u.name,'ok');go('a-dash')},
+ register(f){const id=fv(f,'id').trim(),name=fv(f,'name').trim(),pass=fv(f,'pass');if(!id||!name||pass.length<4)return toast('Fill all fields (password min 4)','err');
+  S=loadS();if(S.users.some(u=>u.id.toLowerCase()===id.toLowerCase()))return toast('Admin ID already exists','err');
+  mutate(s=>{s.users.push({id,pass,name})},{quiet:true});toast('Account created — please log in','ok');go('login')},
+ addAdmin(f){const id=fv(f,'id').trim(),name=fv(f,'name').trim(),pass=fv(f,'pass');if(!id||!name||pass.length<4)return toast('Fill all fields (password min 4)','err');
+  S=loadS();if(S.users.some(u=>u.id.toLowerCase()===id.toLowerCase()))return toast('Admin ID already exists','err');
+  mutate(s=>{s.users.push({id,pass,name});if(s.comp)log(s.comp,'admin',name+' added as admin')});toast('Admin added','ok')},
+ joinReq(f){const team=fv(f,'team').trim(),by=fv(f,'member').trim(),g=fv(f,'group').trim().toUpperCase(),p=fv(f,'pass');
+  if(!team||!by)return toast('Enter team name and your name','err');
+  S=loadS();const c=S.comp;if(!c)return toast('No competition found in this browser','err');if(c.groupId.toUpperCase()!==g||c.pass.toUpperCase()!==p.trim().toUpperCase())return toast('Invalid Group ID or password','err');
+  const ex=c.teams.find(t=>t.name.toLowerCase()===team.toLowerCase());
+  if(ex){if(ex.status==='eliminated')return toast('This team has been eliminated','err');
+   let name=ex.members.find(m=>m.toLowerCase()===by.toLowerCase());
+   if(!name){if(ex.members.length>=c.maxMembers)return toast('Team is full','err');name=by;mutate(s=>{const t=s.comp.teams.find(x=>x.id===ex.id);t.members.push(by);log(s.comp,'join',by+' joined '+t.name)},{quiet:true})}
+   return enterPlayer(S.comp,ex.id,name)}
+  let r=c.requests.find(x=>x.team.toLowerCase()===team.toLowerCase()&&x.status==='pending');
+  if(!r)mutate(s=>{r={id:uid(),team,by,ts:Date.now(),status:'pending'};s.comp.requests.push(r);log(s.comp,'request',team+' requested to join')},{quiet:true});
+  sess.pending={id:r.id,team,by,group:c.groupId};go('p-wait')},
+ createComp(f){const name=fv(f,'name').trim();if(!name)return toast('Enter a competition name','err');
+  const rounds=parseInt(fv(f,'rounds'),10),qpr=parseInt(fv(f,'qpr'),10),time=parseInt(fv(f,'time'),10);
+  if(!(rounds>=1&&rounds<=20))return toast('Rounds must be 1–20','err');if(!(qpr>=1&&qpr<=50))return toast('Questions per round must be 1–50','err');if(!(time>=5&&time<=600))return toast('Time must be 5–600 seconds','err');
+  const group=(fv(f,'group').trim()||genGroup(name)).toUpperCase(),pass=fv(f,'pass').trim()||genPass();
+  const build=()=>{mutate(s=>{const now=Date.now();s.comp={name,groupId:group,pass,adminId:sess.adminId,totalRounds:rounds,qPerRound:qpr,timeLimit:time,maxMembers:5,status:'waiting',round:1,q:1,created:now,teams:[],requests:[],scores:[],history:[],buzzer:{state:'idle',startedAt:0,endsAt:0,order:[]}};log(s.comp,'create',`Competition "${name}" created`)},{quiet:true});sess.justCreated=true;render();toast('Competition created','ok')};
+  S=loadS();if(S.comp)confirmBox('Replace competition?','A competition already exists. Creating a new one removes all existing teams, scores and history.','Replace',build);else build()},
+ addTeam(f){const n=fv(f,'team').trim();if(!n)return;S=loadS();if(S.comp.teams.some(t=>t.name.toLowerCase()===n.toLowerCase()))return toast('Team name already exists','err');
+  closeModal();mutate(s=>{s.comp.teams.push({id:uid(),name:n,members:[],status:'active',base:0,joinedAt:Date.now()});log(s.comp,'join',n+' added by admin')});toast('Team added','ok')},
+ eliminate(f){const id=fv(f,'team'),reason=fv(f,'reason').trim();closeModal();mutate(s=>{const t=s.comp.teams.find(x=>x.id===id);if(t){t.status='eliminated';log(s.comp,'eliminate',t.name+' eliminated'+(reason?' ('+reason+')':''))}});toast('Team eliminated')},
+ giveScore(f){const id=fv(f,'team'),m=parseInt(fv(f,'marks'),10),reason=fv(f,'reason').trim();if(!id)return toast('Select a team','err');if(isNaN(m)||m===0)return toast('Enter valid marks','err');
+  mutate(s=>{const c=s.comp,t=c.teams.find(x=>x.id===id);if(!t)return;c.scores.push({id:uid(),team:id,marks:m,reason,ts:Date.now()});log(c,'score',`${t.name} scored ${m>0?'+':''}${m}${reason?' ('+reason+')':''}`)});
+  const sel=$('#sc-team');if(sel){sel.value=id;updTotal()}toast('Score added','ok');beep(1000,.12)},
+ saveSettings(f){mutate(s=>{s.settings={sound:f.elements.sound.checked,notif:f.elements.notif.checked,autoNext:f.elements.autoNext.checked,theme:fv(f,'theme'),volume:parseInt(fv(f,'volume'),10)||0}});toast('Settings saved','ok');beep(900,.12)}
+};
+
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el||el.disabled)return;const fn=A[el.dataset.a];if(fn)fn(el,e)});
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const fn=SUBMITS[f.dataset.submit];if(fn)fn(f)});
+document.addEventListener('change',e=>{const id=e.target.id;if(id==='sc-team')updTotal();if(id==='el-team')updElim()});
+document.addEventListener('input',e=>{if(e.target.name==='volume'){const l=$('#vol-l');if(l)l.textContent=e.target.value}});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&$('#modal').firstChild){closeModal();confirmFn=null}
+ if((e.code==='Space'||e.key===' ')&&sess.view==='p-buzz'&&!/INPUT|TEXTAREA|SELECT|BUTTON/.test((e.target.tagName||''))){e.preventDefault();A.buzz()}});
+
+render();
+})();
+</script>
+</body>
+</html>
